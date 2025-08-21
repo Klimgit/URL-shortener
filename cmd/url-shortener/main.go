@@ -2,6 +2,7 @@ package main
 
 import (
 	"URL-shortener/internal/config"
+	"URL-shortener/internal/storage/sqlite"
 	"log/slog"
 	_ "log/slog"
 	"os"
@@ -14,16 +15,17 @@ const (
 )
 
 func main() {
-	// TODO: init config: cleanenv
 	cfg := config.MustLoad()
 
 	log := setupLogger(cfg.Env)
 
 	log.Info("starting server")
-	//TODO init logger: slog
 
-	//TODO: init storage: postgress
-
+	storage, err := sqlite.New(cfg.StoragePath)
+	if err != nil {
+		log.Error("failde to create storage")
+		os.Exit(1)
+	}
 	//TODO: init router: chi, chi-render
 
 	//TODO: run server

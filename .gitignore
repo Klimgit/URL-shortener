@@ -1,1 +1,2 @@
-local.env
+local.yaml
+/storage/storage.db
