@@ -2,6 +2,7 @@ package main
 
 import (
 	"URL-shortener/internal/config"
+	"URL-shortener/internal/libs/logger/sl"
 	"URL-shortener/internal/storage/sqlite"
 	"log/slog"
 	_ "log/slog"
@@ -23,9 +24,12 @@ func main() {
 
 	storage, err := sqlite.New(cfg.StoragePath)
 	if err != nil {
-		log.Error("failde to create storage")
+		log.Error("failed to create storage", sl.Err(err))
 		os.Exit(1)
 	}
+
+	_ = storage
+
 	//TODO: init router: chi, chi-render
 
 	//TODO: run server

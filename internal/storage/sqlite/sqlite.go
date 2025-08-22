@@ -3,6 +3,8 @@ package sqlite
 import (
 	"database/sql"
 	"fmt"
+
+	_ "github.com/mattn/go-sqlite3"
 )
 
 type Storage struct {
@@ -36,3 +38,7 @@ func New(storagePath string) (*Storage, error) {
 
 	return &Storage{db: db}, nil
 }
+
+//func (s *Storage) SaveURL(urlToSave string, alias string) (int64, error) {
+//
+//}
