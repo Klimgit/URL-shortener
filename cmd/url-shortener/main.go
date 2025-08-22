@@ -1,6 +1,14 @@
 package main
 
 import (
+	"context"
+	"log/slog"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
+
 	"URL-shortener/internal/config"
 	"URL-shortener/internal/http-server/handlers/url/save"
 	mwLogger "URL-shortener/internal/http-server/middleware/logger"
@@ -9,8 +17,6 @@ import (
 	"URL-shortener/internal/storage/sqlite"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"log/slog"
-	"os"
 )
 
 const (
@@ -45,7 +51,43 @@ func main() {
 
 	router.Post("/url", save.New(log, storage))
 
-	//TODO: run server
+	log.Info("starting server", slog.String("address", cfg.Address))
+
+	done := make(chan os.Signal, 1)
+	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+
+	srv := &http.Server{
+		Addr:         cfg.Address,
+		Handler:      router,
+		ReadTimeout:  cfg.HTTPServer.Timeout,
+		WriteTimeout: cfg.HTTPServer.Timeout,
+		IdleTimeout:  cfg.HTTPServer.IdleTimeout,
+	}
+
+	go func() {
+		if err := srv.ListenAndServe(); err != nil {
+			log.Error("failed to start server")
+		}
+	}()
+
+	log.Info("server started")
+
+	<-done
+	log.Info("stopping server")
+
+	// TODO: move timeout to config
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	if err := srv.Shutdown(ctx); err != nil {
+		log.Error("failed to stop server", sl.Err(err))
+
+		return
+	}
+
+	// TODO: close storage
+
+	log.Info("server stopped")
 }
 
 func setupLogger(env string) *slog.Logger {
