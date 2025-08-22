@@ -5,7 +5,6 @@ import (
 	"URL-shortener/internal/libs/logger/sl"
 	"URL-shortener/internal/storage/sqlite"
 	"log/slog"
-	_ "log/slog"
 	"os"
 )
 
